@@ -41,7 +41,10 @@ const CLASS_BUTTON = "btn";
     let navigateBook;
     let navigateChapter;
     let navigateHome;
+    let nextChapter;
     let onHashChanged;
+    let previousChapter;
+    let titleForBookChapter;
     let volumesGridContent;
 
     /******************************************Functions**********************************
@@ -52,7 +55,9 @@ const CLASS_BUTTON = "btn";
         request.open(REQUEST_GET, url, true);
         request.onload = function() {
             if (request.status >= REQUEST_STATUS_OK && request.status < REQUEST_STATUS_ERROR) {
-                let data = skipJsonParse ? request.response :JSON.parse(request.responseText);
+                let data = (skipJsonParse
+                    ? request.response 
+                    : JSON.parse(request.responseText));
                 if (typeof successCallback === "function") {
                     successCallback(data);
                 }
@@ -242,6 +247,8 @@ const CLASS_BUTTON = "btn";
         }
     };
     navigateChapter = function(bookId, chapter) {
+        console.log(nextChapter(bookId, chapter));
+        console.log(previousChapter(bookId, chapter));
         ajax(encodedScripturesUrlParameters(bookId, chapter), getScripturesCallback, getScripturesFailure, true);
     };
     navigateHome = function(volumeId) {
@@ -250,6 +257,35 @@ const CLASS_BUTTON = "btn";
             content: volumesGridContent(volumeId),
 
         });
+    };
+    nextChapter = function(bookId, chapter) {
+        let book = books[bookId];
+
+        if (book !== undefined) {
+            if (chapter < book.numChapters) {
+                return [
+                    bookId, 
+                    chapter + 1,
+                    titleForBookChapter(book, chapter + 1)
+                ];
+            }
+
+            let nextBook = books[bookId + 1];
+            if (nextBook !== undefined) {
+                let nextChapterValue = 0;
+
+                if (nextBook.numChapters > 0) {
+                    nextChapterValue = 1;
+                }
+
+                return [
+                    nextBook.id,
+                    nextChapterValue,
+                    titleForBookChapter(nextBook, nextChapterValue)
+                ];
+
+            }
+        }
     };
     onHashChanged = function() {
         let ids = [];
@@ -276,7 +312,6 @@ const CLASS_BUTTON = "btn";
                     navigateBook(bookId);
                 } else {
                     let chapter = Number(ids[2]);
-
                     if (bookChapterValid(bookId, chapter)) {
                         navigateChapter(bookId, chapter);
                     } else {
@@ -285,6 +320,39 @@ const CLASS_BUTTON = "btn";
                 }
             }
         }
+    };
+    previousChapter = function(bookId, chapter) {
+        let book = books[bookId];
+
+        if (book !== undefined) {
+            if (chapter > 1) {
+                return [
+                    bookId, 
+                    chapter -1,
+                    titleForBookChapter(book, chapter -1)
+                ];
+            }
+
+            let lastBook = books[bookId - 1];
+            if (lastBook !== undefined) {
+                let lastChapterValue = lastBook.numChapters;
+                return [
+                    lastBook.id,
+                    lastChapterValue,
+                    titleForBookChapter(lastBook, lastChapterValue)
+                ];
+
+            }
+        }
+    };
+    titleForBookChapter = function(book, chapter) {
+        if (book !== undefined) {
+            if (chapter > 0) {
+                return `${book.tocName} ${chapter}`;
+            }
+            return book.tocName;
+        }
+
     };
     volumesGridContent = function(volumeId) {
         let gridContent = "";
