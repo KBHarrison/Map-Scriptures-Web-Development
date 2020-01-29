@@ -2,29 +2,49 @@ const Scriptures = (function() {
     "use strict";
 /******************************************Constants**********************************
 */
+const BOTTOM_PADDING = "<br /><br />";
+const CLASS_BOOKS = "books";
+const CLASS_VOLUME = "volume";
+const DIV_SCRIPTURES_NAVIGATOR = "scripnav";
+const DIV_SCRIPTURES = "scriptures";
+const REQUEST_GET = "GET";
+const REQUEST_STATUS_OK = 200;
+const REQUEST_STATUS_ERROR = 400;
+const TAG_VOLUME_HEADER = "h5";
+const URL_BOOKS = "https://scriptures.byu.edu/mapscrip/model/books.php";
+const URL_VOLUMES = "https://scriptures.byu.edu/mapscrip/model/volumes.php";
+const CLASS_BUTTON = "btn";
+/******************************************Private Variables**********************************
+*/
     let books;
     let volumes;
 /******************************************Method Declaration**********************************
 */
     let ajax;
     let bookChapterValid;
+    let booksGridContent;
+    let booksGrid;
     let cacheBooks;
+    let htmlAnchor;
+    let htmlDiv;
+    let htmlElement;
+    let htmlLink;
     let clearMap;
     let init;
-    let initMap;
     let navigateBook;
     let navigateChapter;
     let navigateHome;
     let onHashChanged;
+    let volumesGridContent;
 
     /******************************************Functions**********************************
 */
 
     ajax = function(url, successCallback, failureCallback) {
         let request = new XMLHttpRequest();
-        request.open('GET', url, true);
+        request.open(REQUEST_GET, url, true);
         request.onload = function() {
-            if (request.status >= 200 && request.status < 400) {
+            if (request.status >= REQUEST_STATUS_OK && request.status < REQUEST_STATUS_ERROR) {
                 let data = JSON.parse(request.responseText);
                 if (typeof successCallback === "function") {
                     successCallback(data);
@@ -50,6 +70,24 @@ const Scriptures = (function() {
         }
         return true;
     };
+    booksGrid = function(volume) {
+        return htmlDiv({
+            classKey: CLASS_BOOKS,
+            content: booksGridContent(volume)
+        });
+    };
+    booksGridContent = function(volume) {
+        let gridContent = "";
+        volume.books.forEach(function(book) {
+            gridContent += htmlLink({
+                classKey: CLASS_BUTTON,
+                id: book.id,
+                href: `#${volume.id}:${book.id}`,
+                content: book.gridName
+            });
+        });
+        return gridContent;
+    };
     cacheBooks = function(callback) {
         volumes.forEach(volume => {
             let volumeBooks = [];
@@ -72,11 +110,55 @@ const Scriptures = (function() {
         // markers.map((marker)=>{marker.setMap(null)});
         markers.forEach(val => val.setMap(null));
     };
+    htmlAnchor = function(volume) {
+        return `<a name="v${volume.id}" />`;
+    };
+    htmlDiv = function(parameters) {
+        let classString = "";
+        let contentString = "";
+        let idString = "";
+
+        if (parameters.classKey !== undefined) {
+            classString = ` class="${parameters.classKey}"`;
+        }
+
+        if (parameters.content !== undefined) {
+            contentString = parameters.content;
+        }
+
+        if (parameters.id !== undefined) {
+            classString = ` id="${parameters.id}"`;
+        }
+
+        return `<div${idString}${classString}>${contentString}</div>`;
+    };
+    htmlElement = function(tagName, content) {
+        return `<${tagName}>${content}</${tagName}>`;
+    };
+    htmlLink = function (parameters) {
+        let classString = "";
+        let contentString = "";
+        let hrefString = "";
+        let idString = "";
+
+        if (parameters.classKey !== undefined) {
+            classString = ` class="${parameters.classKey}"`;
+        }
+        if (parameters.content !== undefined) {
+            contentString = parameters.content;
+        }
+        if (parameters.href !== undefined) {
+            hrefString = ` href="${parameters.href}"`;
+        }
+        if (parameters.id !== undefined) {
+            idString = ` id="${parameters.id}"`;
+        }
+            return `<a${idString}${classString}${hrefString}>${contentString}</a>`;
+    };
     init = function(callback) {
-        console.log("Scriptures Initialized");
         let booksLoaded = false;
         let volumesLoaded = false;
-        ajax("https://scriptures.byu.edu/mapscrip/model/books.php", 
+        ajax(URL_BOOKS, 
             data => {
                 books = data;
                 booksLoaded = true;
@@ -86,7 +168,7 @@ const Scriptures = (function() {
                 }
             }
         );
-        ajax("https://scriptures.byu.edu/mapscrip/model/volumes.php", 
+        ajax(URL_VOLUMES, 
             data => {
                 console.log(data);
                 volumes = data;
@@ -102,12 +184,11 @@ const Scriptures = (function() {
         console.log("navigate chapter ", bookId);
     };
     navigateHome = function(volumeId) {
-        document.getElementById("scriptures").innerHTML = 
-        "<div>The Old Testament</div>" + 
-        "<div>The New Testament</div>" + 
-        "<div>The Book of Mormon</div>" + 
-        "<div>Doctrine and Covenants</div>" + 
-        "<div>The Pearl of Great Price</div>" + volumeId 
+        document.getElementById(DIV_SCRIPTURES).innerHTML = htmlDiv({
+            id: DIV_SCRIPTURES_NAVIGATOR,
+            content: volumesGridContent(volumeId),
+
+        });
     };
     onHashChanged = function() {
         let ids = [];
@@ -143,6 +224,19 @@ const Scriptures = (function() {
                 }
             }
         }
+    };
+    volumesGridContent = function(volumeId) {
+        let gridContent = "";
+        volumes.forEach(function(volume) {
+            if (volumeId === undefined || volumeId === volume.id) {
+                gridContent += htmlDiv({
+                    classKey: CLASS_VOLUME,
+                    content: htmlAnchor(volume) + htmlElement(TAG_VOLUME_HEADER, volume.fullName)
+                });
+                gridContent += booksGrid(volume);
+            }
+        });
+        return gridContent + BOTTOM_PADDING;
     };
 
 return {

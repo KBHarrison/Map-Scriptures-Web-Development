@@ -1,25 +1,26 @@
 <!doctype html>
 
-<html lang="en">
+<html lang=""class="no-js">
 <head>
   <meta charset="utf-8">
-
-  <title>The HTML5 Herald</title>
-  <meta name="description" content="The HTML5 Herald">
-  <meta name="author" content="SitePoint">
-
+  <title>The Scriptures Mapped</title>
+  <meta name="author" content="Kyle Harrison">
   <link rel="stylesheet" href="css/styles.css">
   <script src="js/scriptures.js"></script>
-
 </head>
 
 <body>
-  <div id="header"></div>
-  <div id="scriptures">
-    
+  <div id="header">
+    <div id="crumbs"></div>
+    <div id="centerhead">
+      <div class="title">The Scriptures, Mapped</div>
+      <div class="subtitle">Designed by Stephen W. Liddle, followed by Kyle Harrison</div>
+    </div>
   </div>
-  <div id="map"></div>
-
+  <div id="content">
+    <div id="scriptures"></div>
+    <div id="map"></div>
+  </div>
   <script>
         initMap = function() {
         var map = new google.maps.Map(document.getElementById('map'), {
@@ -49,9 +50,6 @@
     // });
 
 </script>
-
-
-
   <script type="text/javascript">
     function ready(fn) {
       if (document.readyState != 'loading'){
