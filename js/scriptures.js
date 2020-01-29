@@ -8,6 +8,11 @@ const CLASS_CHAPTER = "chapter";
 const CLASS_VOLUME = "volume";
 const DIV_SCRIPTURES_NAVIGATOR = "scripnav";
 const DIV_SCRIPTURES = "scriptures";
+const INDEX_PLACENAME = 2;
+const INDEX_LATITUDE = 3;
+const INDEX_LONGITUDE = 4;
+const INDEX_FLAG = 11;
+const LAT_LON_PARSER = /\((.*),'(.*)',(.*),(.*),(.*),(.*),(.*),(.*),(.*),(.*),'(.*)'\)/;
 const REQUEST_GET = "GET";
 const REQUEST_STATUS_OK = 200;
 const REQUEST_STATUS_ERROR = 400;
@@ -19,9 +24,11 @@ const CLASS_BUTTON = "btn";
 /******************************************Private Variables**********************************
 */
     let books;
+    let gmMarkers = [];
     let volumes;
 /******************************************Method Declaration**********************************
 */
+    let addMarker;
     let ajax;
     let bookChapterValid;
     let booksGridContent;
@@ -29,6 +36,7 @@ const CLASS_BUTTON = "btn";
     let cacheBooks;
     let chaptersGrid;
     let chaptersGridContent;
+    let clearMarkers;
     let encodedScripturesUrlParameters;
     let getScripturesCallback;
     let getScripturesFailure;
@@ -44,12 +52,17 @@ const CLASS_BUTTON = "btn";
     let nextChapter;
     let onHashChanged;
     let previousChapter;
+    let setupMarkers;
     let titleForBookChapter;
     let volumesGridContent;
 
     /******************************************Functions**********************************
 */
-
+    addMarker = function (placename, latitude, longitude) {
+        //NEEDSWORK: Check to see if we already have these coordinates in the gMarkers array.
+        // NEEDSWORK: Create marker and append it to the gmMarkers array.
+        console.log(placename, latitude,longitude);
+    };
     ajax = function(url, successCallback, failureCallback, skipJsonParse) {
         let request = new XMLHttpRequest();
         request.open(REQUEST_GET, url, true);
@@ -138,13 +151,12 @@ const CLASS_BUTTON = "btn";
         }
         return gridContent;
     };
-    // clearMap = function(markers) {
-    //     if (typeof markers !== "object") {
-    //         return null
-    //     }
-    //     // markers.map((marker)=>{marker.setMap(null)});
-    //     markers.forEach(val => val.setMap(null));
-    // };
+    clearMarkers = function() {
+        gmMarkers.forEach(function(marker) {
+            marker.setMap(null);
+        });
+        gmMarkers = [];
+    };
     encodedScripturesUrlParameters = function(bookId, chapter, verses, isJst) {
         if(bookId !== undefined && chapter !== undefined) {
             let options = "";
@@ -159,7 +171,7 @@ const CLASS_BUTTON = "btn";
     };
     getScripturesCallback = function(chapterHtml) {
         document.getElementById(DIV_SCRIPTURES).innerHTML = chapterHtml;
-        // Needs work: setupMarkers()
+        setupMarkers()
     };
     getScripturesFailure = function() {
         console.log("unable to retrieve chapter content from server.");
@@ -344,6 +356,27 @@ const CLASS_BUTTON = "btn";
 
             }
         }
+    };
+    setupMarkers = function() {
+        if (gmMarkers.length > 0) {
+            clearMarkers();
+        }
+
+        document.querySelectorAll("a[onclick^=\"showLocation(\"]").forEach(function (element) {
+            let matches = LAT_LON_PARSER.exec(element.getAttribute("onclick"));
+            if (matches) {
+                let placename = matches[INDEX_PLACENAME];
+                let latitude = matches[INDEX_LATITUDE];
+                let longitude = matches[INDEX_LONGITUDE];
+                let flag = matches[INDEX_FLAG];
+
+                if (flag !== "") {
+                    placename += ` ${flag}`;
+                }
+                addMarker(placename, latitude, longitude);
+            }
+            console.log(element, matches);
+            });
     };
     titleForBookChapter = function(book, chapter) {
         if (book !== undefined) {
