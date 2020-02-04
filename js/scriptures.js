@@ -120,29 +120,20 @@ const Scriptures = (function () {
     };
     addNavigationButtons = function () {
         let navspace = document.getElementsByClassName("navspace")[0];
-        let previousChapter = previousChapter(getIds()[1], getIds()[2]);
-        let nextChapter = nextChapter(getIds()[1], getIds()[2]);
-        console.log(previousChapter);
-        console.log(nextChapter);
-        if (previousChapter) {
-            navspace.innerHTML = `
-            <a id="backButton" href="javascript:void(0)" onclick="
+        navspace.innerHTML = `<a id="backButton" href="javascript:void(0)" onclick="
             let previousChapter =
-                Scriptures.previousChapter(
-                        Scriptures.getIds()[1], Scriptures.getIds()[2]
-                            );
+            Scriptures.previousChapter(
+            Scriptures.getIds()[1], Scriptures.getIds()[2]
+            );
             Scriptures.navigateChapter(previousChapter[0],previousChapter[1]);
-            ">Back</a>`;
-        }
-        if (nextChapter) {
-            navspace.innerHTML += `<a id="nextButton" href="javascript:void(0)" onclick="
+            ">Back</a>
+            <a id="nextButton" href="javascript:void(0)" onclick="
             let nextChapter =
-                Scriptures.nextChapter(
-                    Scriptures.getIds()[1], Scriptures.getIds()[2]
-                    );
+            Scriptures.nextChapter(
+            Scriptures.getIds()[1], Scriptures.getIds()[2]
+            );
             Scriptures.navigateChapter(nextChapter[0],nextChapter[1]);
             ">Next</a>`;
-        }        
     };
     ajax = function (url, successCallback, failureCallback, skipJsonParse) {
         let request = new XMLHttpRequest();
